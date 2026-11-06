@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberExterminator: Programador vs Hacker</title>
+    <meta name="description" content="Juego en primera persona de programación contra un hacker. Responde preguntas de HTML, CSS y Python para activar al fumigador y erradicar los bichos rojos del servidor.">
+    <!-- Enlace a estilos Vanilla CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="room-view">
+        <!-- Resplandor ambiental de luces LED en la pared detrás del monitor -->
+        <div class="ambient-glow"></div>
+
+        <!-- Notas adhesivas en el entorno del programador -->
+        <div class="sticky-note left">
+            <strong>📌 RECORDATORIO:</strong><br>
+            ¡Mantener el Firewall activo!<br>
+            Cuidado con las inyecciones de código del hacker.
+        </div>
+        <div class="sticky-note right">
+            <strong>⚠️ ALERTA:</strong><br>
+            Infestación de bichos en el puerto 8080.<br>
+            Fumigador en espera de parches.
+        </div>
+
+        <!-- ESTRUCTURA DEL MONITOR (POV DEL PROGRAMADOR) -->
+        <div class="monitor-frame">
+            <div class="monitor-top-bezel">
+                <div class="webcam-lens"></div>
+            </div>
+
+            <div class="monitor-screen">
+                <!-- Efecto sutil de scanlines CRT -->
+                <div class="scanlines"></div>
+
+                <!-- BARRA SUPERIOR DE ESTADO (HUD) -->
+                <header class="monitor-header">
+                    <div class="hud-title-zone">
+                        <div class="server-badge">
+                            <span class="status-dot"></span>
+                            <span id="serverName">SRV-MAIN::PROTEGIDO</span>
+                        </div>
+                        <div class="server-badge" id="levelBadge" style="border-color: rgba(255, 153, 0, 0.4); color: #ffbb33;">
+                            <span id="levelDisplay">NIVEL 1: INVASIÓN HTML</span>
+                        </div>
+                        <!-- WIDGET DE TEMPORIZADOR PARA MODO CARRERA -->
+                        <div class="race-timer-badge" id="raceTimerBadge" style="display: none;">
+                            <span class="race-timer-icon">⏱️</span>
+                            <span class="race-timer-label">TIEMPO:</span>
+                            <span class="race-timer-val" id="raceTimerVal">30s</span>
+                        </div>
+                    </div>
+
+                    <!-- BARRAS DUALES: CORRECTAS VS INCORRECTAS -->
+                    <div class="dual-bars-zone">
+                        <div class="hud-bar-block correct-block">
+                            <div class="bar-info-row">
+                                <span class="bar-tag">🛡️ CORRECTAS</span>
+                                <span class="bar-val" id="correctScoreText">0% (0/5)</span>
+                            </div>
+                            <div class="bar-slot">
+                                <div class="bar-meter fill-correct" id="correctMeter" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <span class="bars-vs-badge">VS</span>
+
+                        <div class="hud-bar-block incorrect-block">
+                            <div class="bar-info-row">
+                                <span class="bar-tag">💀 INCORRECTAS</span>
+                                <span class="bar-val" id="incorrectScoreText">0% (0/5)</span>
+                            </div>
+                            <div class="bar-slot">
+                                <div class="bar-meter fill-incorrect" id="incorrectMeter" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas y Controles -->
+                    <div class="hud-stats-zone">
+                        <div class="stat-item">
+                            <span class="stat-label">PUNTUACIÓN</span>
+                            <span class="stat-val" id="scoreVal">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">RACHA</span>
+                            <span class="stat-val" id="streakVal">0x</span>
+                        </div>
+                        <button class="btn-icon" id="btnHomeMenu" title="Volver al Menú Principal">
+                            🏠
+                        </button>
+                        <button class="btn-icon" id="btnSoundToggle" title="Activar/Silenciar Sonido">
+                            🔊
+                        </button>
+                        <button class="btn-icon" id="btnHelp" title="Instrucciones del Juego">
+                            ❓
+                        </button>
+                    </div>
+                </header>
+
+                <!-- BARRA VISUAL DE TIEMPO TRANSCURRIDO (MODO CARRERA) -->
+                <div class="race-countdown-bar-container" id="raceCountdownBarContainer" style="display: none;">
+                    <div class="race-countdown-bar" id="raceCountdownBar" style="width: 100%;"></div>
+                </div>
+
+                <!-- LIENZO INTERNO DEL PC: FUMIGADOR VS BICHOS ROJOS -->
+                <div class="canvas-container">
+                    <canvas id="battleCanvas"></canvas>
+                </div>
+
+                <!-- TERMINAL / IDE DE PROGRAMACIÓN (PREGUNTAS) -->
+                <div class="ide-workspace">
+                    <div class="ide-tabs">
+                        <div class="ide-tab active" id="tabCurrent">
+                            <span class="tab-dot dot-html" id="tabDot"></span>
+                            <span id="tabFilename">security_patch.html</span>
+                        </div>
+                        <div class="ide-tab">
+                            <span class="tab-dot dot-css"></span>
+                            <span>firewall_rules.css</span>
+                        </div>
+                        <div class="ide-tab">
+                            <span class="tab-dot dot-py"></span>
+                            <span>antivirus_core.py</span>
+                        </div>
+                    </div>
+
+                    <div class="ide-split-body">
+                        <!-- Panel de la Pregunta Activa -->
+                        <div class="question-panel">
+                            <div class="question-meta">
+                                <span class="cat-badge HTML" id="catBadge">HTML</span>
+                                <span class="diff-badge" id="diffBadge">Fácil</span>
+                                <span style="font-size: 11px; color: var(--text-dim);" id="qIndexBadge">Pregunta 1/15</span>
+                            </div>
+
+                            <div class="question-prompt" id="questionPrompt">
+                                Cargando desafío de seguridad...
+                            </div>
+
+                            <!-- Código de muestra opcional -->
+                            <div class="code-preview-box" id="codeBox" style="display: none;"></div>
+
+                            <!-- Opciones de respuesta interactiva -->
+                            <div class="options-grid" id="optionsGrid">
+                                <button class="option-btn" data-index="0">
+                                    <span class="option-key">1</span>
+                                    <span class="option-text">Opción A</span>
+                                </button>
+                                <button class="option-btn" data-index="1">
+                                    <span class="option-key">2</span>
+                                    <span class="option-text">Opción B</span>
+                                </button>
+                                <button class="option-btn" data-index="2">
+                                    <span class="option-key">3</span>
+                                    <span class="option-text">Opción C</span>
+                                </button>
+                                <button class="option-btn" data-index="3">
+                                    <span class="option-key">4</span>
+                                    <span class="option-text">Opción D</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Panel de Terminal en Vivo (Registro de ataques y defensas) -->
+                        <div class="terminal-panel">
+                            <div class="terminal-header">
+                                <span>TERMINAL_LOG::SERVER_CLI</span>
+                                <span style="color: var(--neon-green);">LIVE 🟢</span>
+                            </div>
+                            <div class="terminal-body" id="terminalLogs">
+                                <div class="log-line log-sys">[00:00:01] Conexión establecida con el servidor seguro.</div>
+                                <div class="log-line log-alert">[00:00:02] ¡ALERTA! Intrusión de hacker detectada. Inyección de bichos rojos en curso.</div>
+                                <div class="log-line log-sys">[00:00:03] Fumigador virtual desplegado en la placa base del procesador.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MENÚ DE INICIO (PANTALLA PRINCIPAL) -->
+                <div class="menu-overlay" id="mainMenuOverlay">
+                    <div class="menu-content-card">
+                        <div class="menu-badge-version">SEGURIDAD CIBERNÉTICA v3.0</div>
+                        <h1 class="menu-game-title">FUMIGADOR</h1>
+                        <p class="menu-game-subtitle">PROGRAMADOR VS PLAGAS HACKER</p>
+
+                        <div class="menu-options-container">
+                            <button class="btn-menu-action btn-menu-story" id="btnMenuStory">
+                                <span class="action-icon">🚀</span>
+                                <div class="action-text-box">
+                                    <span class="action-title">MODO HISTORIA</span>
+                                    <span class="action-desc">3 Niveles: HTML (Fácil) ➔ CSS (Medio) ➔ Python (Avanzado)</span>
+                                </div>
+                            </button>
+
+                            <button class="btn-menu-action btn-menu-race" id="btnMenuRace">
+                                <span class="action-icon">🏁</span>
+                                <div class="action-text-box">
+                                    <span class="action-title">MODO CARRERA (30s)</span>
+                                    <span class="action-desc">Carrera contrarreloj: responde HTML, CSS y Python al azar en 30 segundos</span>
+                                </div>
+                            </button>
+
+                            <button class="btn-menu-action btn-menu-info" id="btnMenuHowToPlay">
+                                <span class="action-icon">📖</span>
+                                <div class="action-text-box">
+                                    <span class="action-title">CÓMO SE JUEGA</span>
+                                    <span class="action-desc">Mecánica de barras, respuestas y controles</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="menu-footer-hint">
+                            ⌨️ Presiona los números [1-4] o letras [A-D] para jugar
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CINEMÁTICA DE INTRODUCCIÓN: ALERTA Y DESPLIEGUE -->
+                <div class="intro-overlay" id="introCinematicOverlay" style="display: none;">
+                    <div class="intro-alert-card">
+                        <div class="alert-pulse-icon">⚠️</div>
+                        <h2 class="alert-title">¡ALERTA! ESTÁN ATACANDO EL PROGRAMA</h2>
+                        <p class="alert-desc">
+                            El hacker ha inyectado una horda de <strong>bichos rojos</strong> que están devorando la memoria del servidor.
+                        </p>
+                        
+                        <div class="intro-deploy-prompt" id="introDeployPrompt">
+                            <span class="prompt-pulse-text">⌨️ PRESIONA CUALQUIER TECLA DEL TECLADO</span>
+                            <span class="prompt-subtext">PARA DESPLEGAR AL FUMIGADOR Y COMENZAR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CINEMÁTICA FINAL: GRAN FINAL -->
+                <div class="modal-cinematic modal-grand-finale" id="grandFinaleOverlay">
+                    <div class="modal-content-card finale-card">
+                        <div class="finale-trophy-halo">🏆</div>
+                        <h1 class="finale-title">¡FELICIDADES!</h1>
+                        <h2 class="finale-subtitle">LIMPIASTE LA PÁGINA DE LAS PLAGAS</h2>
+                        <p class="finale-desc">
+                            El fumigador exterminó al último bicho rojo con el rayo antiviral de máxima potencia. El servidor web está 100% libre de plagas.
+                        </p>
+
+                        <div class="modal-stats-grid">
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">PUNTUACIÓN FINAL</span>
+                                <span class="m-stat-val" id="finScore">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">BUGS ELIMINADOS</span>
+                                <span class="m-stat-val" id="finBugs">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">ESTADO SERVIDOR</span>
+                                <span class="m-stat-val" style="color: var(--neon-green);">100% LIMPIO</span>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button class="btn-cyber-primary" id="btnReturnMenuFinal">
+                                🏠 Volver al Menú Principal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL CINEMÁTICO: "MISIÓN CUMPLIDA" (VICTORIA DE NIVEL) -->
+                <div class="modal-cinematic modal-victory" id="modalVictory">
+                    <div class="modal-content-card">
+                        <div class="victory-icon-halo">🏆</div>
+                        <h2 class="modal-title-victory">MISIÓN CUMPLIDA</h2>
+                        <p class="modal-subtitle-victory">
+                            ¡Nivel superado con éxito!
+                        </p>
+                        <div class="modal-stats-grid">
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">PUNTOS</span>
+                                <span class="m-stat-val" id="vicScore">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">BUGS ELIMINADOS</span>
+                                <span class="m-stat-val" id="vicBugs">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">PRECISIÓN</span>
+                                <span class="m-stat-val" id="vicAccuracy">100%</span>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn-cyber-primary" id="btnNextLevel">
+                                Siguiente Nivel 🚀
+                            </button>
+                            <button class="btn-cyber-primary" id="btnExitToMenuVic" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid #00ff88;">
+                                🏠 Menú Principal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL CINEMÁTICO: "MISIÓN FALLIDA" -->
+                <div class="modal-cinematic modal-defeat" id="modalDefeat">
+                    <div class="modal-content-card">
+                        <div class="defeat-icon-halo">💀</div>
+                        <h2 class="modal-title-defeat">MISIÓN FALLIDA</h2>
+                        <p class="modal-subtitle-defeat">
+                            Demasiados errores de código. Los bichos rojos se abalanzaron sobre el fumigador eliminándolo.
+                        </p>
+                        <div class="modal-stats-grid">
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">PUNTOS</span>
+                                <span class="m-stat-val" id="defScore">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">ERRORES</span>
+                                <span class="m-stat-val" id="defErrors">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">ESTADO</span>
+                                <span class="m-stat-val" style="color: var(--neon-red);">COMPROMETIDO</span>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn-cyber-danger" id="btnRetry">
+                                Reintentar Nivel ⚡
+                            </button>
+                            <button class="btn-cyber-danger" id="btnExitToMenuDef" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid #ff0055;">
+                                🏠 Menú Principal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL CINEMÁTICO: RESULTADO DE MODO CARRERA (EVALUACIÓN DE BARRAS) -->
+                <div class="modal-cinematic modal-race-result" id="modalRaceResult">
+                    <div class="modal-content-card race-card">
+                        <div class="race-result-halo" id="raceResultIcon">🏁</div>
+                        <h2 class="modal-title-race" id="raceResultTitle">¡CARRERA FINALIZADA!</h2>
+                        <p class="modal-subtitle-race" id="raceResultSubtitle">
+                            Se agotaron los 30 segundos. Evaluando las barras...
+                        </p>
+
+                        <!-- Comparativa directa de barras: Correctas vs Incorrectas -->
+                        <div class="race-result-bars-box">
+                            <div class="race-bar-compare-row" id="raceCompareCorrectRow">
+                                <div class="race-bar-lbl">
+                                    <span class="race-bar-lbl-tag">🛡️ RESPUESTAS BUENAS</span>
+                                    <strong class="race-bar-lbl-val" id="raceModalCorrectVal">0% (0)</strong>
+                                </div>
+                                <div class="race-bar-slot">
+                                    <div class="race-bar-meter fill-correct" id="raceModalCorrectMeter" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="race-vs-divider">VS</div>
+
+                            <div class="race-bar-compare-row" id="raceCompareIncorrectRow">
+                                <div class="race-bar-lbl">
+                                    <span class="race-bar-lbl-tag">💀 RESPUESTAS MALAS</span>
+                                    <strong class="race-bar-lbl-val" id="raceModalIncorrectVal">0% (0)</strong>
+                                </div>
+                                <div class="race-bar-slot">
+                                    <div class="race-bar-meter fill-incorrect" id="raceModalIncorrectMeter" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas de la carrera -->
+                        <div class="modal-stats-grid">
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">TIEMPO</span>
+                                <span class="m-stat-val">30s</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">PUNTOS</span>
+                                <span class="m-stat-val" id="raceScoreVal">0</span>
+                            </div>
+                            <div class="m-stat-box">
+                                <span class="m-stat-lbl">ESTADO</span>
+                                <span class="m-stat-val" id="raceOutcomeBadge" style="color: var(--neon-green);">VICTORIA</span>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button class="btn-cyber-primary" id="btnRetryRace">
+                                ⚡ Jugar Carrera de Nuevo
+                            </button>
+                            <button class="btn-cyber-primary" id="btnExitToMenuRace" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--neon-cyan);">
+                                🏠 Menú Principal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL CÓMO SE JUEGA (INSTRUCCIONES) -->
+                <div class="modal-cinematic modal-info" id="modalHelp">
+                    <div class="modal-content-card" style="max-width: 680px;">
+                        <h2 style="font-size: 22px; color: var(--neon-cyan); margin-bottom: 12px; font-family: var(--font-mono); display: flex; align-items: center; gap: 8px;">
+                            📖 CÓMO SE JUEGA: FUMIGADOR
+                        </h2>
+                        <p style="font-size: 13px; color: #a0c0e0; line-height: 1.5;">
+                            Un hacker malicioso ha infiltrado tu servidor y desató una plaga de <strong>bichos rojos</strong> para destruir el programa. Tu labor es responder las preguntas de programación para activar el spray del Fumigador.
+                        </p>
+                        <div style="margin: 12px 0;">
+                            <h4 style="color: var(--neon-yellow); font-size: 13px; font-family: var(--font-mono);">🎮 MODO HISTORIA (3 NIVELES):</h4>
+                            <ul class="info-rules-list">
+                                <li><strong>Nivel 1: HTML (Dificultad Fácil)</strong> - Estructura básica, etiquetas semánticas y enlaces.</li>
+                                <li><strong>Nivel 2: CSS (Dificultad Media)</strong> - Estilos, Flexbox, Grid, especificidad y modelo de caja.</li>
+                                <li><strong>Nivel 3: Python (Dificultad Avanzada)</strong> - Comprensión de listas, POO, decoradores y excepciones.</li>
+                            </ul>
+                        </div>
+                        <div style="margin: 12px 0;">
+                            <h4 style="color: var(--neon-cyan); font-size: 13px; font-family: var(--font-mono);">⚡ MODO CARRERA (CONTRARRELOJ 30 SEGUNDOS):</h4>
+                            <ul class="info-rules-list">
+                                <li><strong>⏱️ Tiempo de 30 Segundos:</strong> Carrera intensa contra el cronómetro. Responde la mayor cantidad de preguntas posibles antes de que llegue a cero.</li>
+                                <li><strong>🎲 Preguntas al Azar:</strong> Desafíos combinados aleatoriamente de <strong>HTML, CSS y Python</strong> que ponen a prueba tu agilidad mental.</li>
+                                <li><strong>🏁 Decisión por las Barras al Final:</strong> Al acabarse los 30 segundos, se compara el resultado de las barras:
+                                    <ul>
+                                        <li>Si la <strong>barra de respuestas buenas tiene más</strong> aciertos que la de malas ➔ <strong>¡Ganas la carrera! 🏆</strong></li>
+                                        <li>Si la <strong>barra de respuestas malas es la más alta</strong> (o igualan) ➔ <strong>¡Pierdes la carrera! 💀</strong></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div><button class="btn-salida" onclick="window.location.href='index.html'">
+    ← Volver al inicio
+</button>
+                        <div style="margin: 12px 0;">
+                            <h4 style="color: var(--neon-green); font-size: 13px; font-family: var(--font-mono);">⚖️ MECÁNICA DE LAS DOS BARRAS:</h4>
+                            <ul class="info-rules-list">
+                                <li><strong>🛡️ Barra de Correctas (Verde):</strong> Aumenta con cada acierto. El fumigador dispara y elimina un bicho.</li>
+                                <li><strong>💀 Barra de Incorrectas (Roja):</strong> Aumenta con cada error. El fumigador retrocede asustado y surgen nuevos bichos.</li>
+                                <li><strong>Modo Historia:</strong> Si la barra verde llega al 100% ganas de inmediato; si la roja llega al 100% pierdes de inmediato. Al finalizar las 5 preguntas gana la barra mayor.</li>
+                                <li><strong>Modo Carrera:</strong> El juego dura los 30 segundos completos y se declara ganador a la barra que tenga mayor cantidad al terminar el tiempo.</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <p style="font-size: 12px; color: #7994b2;">
+                                ⌨️ <strong>Controles:</strong> Presiona las teclas <strong>[1, 2, 3, 4]</strong> o <strong>[A, B, C, D]</strong> o haz clic con el ratón.
+                            </p>
+                        </div>
+                        <div class="modal-actions" style="margin-top: 18px;">
+                            <button class="btn-cyber-primary" id="btnCloseHelp">
+                                ⬅️ Volver al Menú Principal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ESCRITORIO EN PRIMERA PERSONA (TECLADO RGB, RATÓN, CAFÉ) -->
+        <div class="desk-surface">
+            <div class="desk-rgb-strip"></div>
+
+            <!-- Taza de café humeante -->
+            <div class="coffee-mug-desk" title="Café de Programador">
+                <div class="steam-smoke"></div>
+                <div class="mug-handle"></div>
+            </div>
+
+            <!-- Teclado mecánico RGB en perspectiva del jugador -->
+            <div class="keyboard-body" id="deskKeyboard">
+                <div class="key-row">
+                    <div class="keycap" data-key="Escape">ESC</div>
+                    <div class="keycap" data-key="1">1</div>
+                    <div class="keycap" data-key="2">2</div>
+                    <div class="keycap" data-key="3">3</div>
+                    <div class="keycap" data-key="4">4</div>
+                    <div class="keycap">5</div>
+                    <div class="keycap">6</div>
+                    <div class="keycap">7</div>
+                    <div class="keycap">8</div>
+                    <div class="keycap">9</div>
+                    <div class="keycap">0</div>
+                    <div class="keycap">BKSP</div>
+                </div>
+                <div class="key-row">
+                    <div class="keycap">TAB</div>
+                    <div class="keycap" data-key="q">Q</div>
+                    <div class="keycap" data-key="w">W</div>
+                    <div class="keycap" data-key="e">E</div>
+                    <div class="keycap" data-key="r">R</div>
+                    <div class="keycap" data-key="t">T</div>
+                    <div class="keycap" data-key="y">Y</div>
+                    <div class="keycap" data-key="u">U</div>
+                    <div class="keycap" data-key="i">I</div>
+                    <div class="keycap" data-key="o">O</div>
+                    <div class="keycap" data-key="p">P</div>
+                    <div class="keycap">ENT</div>
+                </div>
+                <div class="key-row">
+                    <div class="keycap">CAPS</div>
+                    <div class="keycap" data-key="a">A</div>
+                    <div class="keycap" data-key="s">S</div>
+                    <div class="keycap" data-key="d">D</div>
+                    <div class="keycap" data-key="f">F</div>
+                    <div class="keycap" data-key="g">G</div>
+                    <div class="keycap" data-key="h">H</div>
+                    <div class="keycap" data-key="j">J</div>
+                    <div class="keycap" data-key="k">K</div>
+                    <div class="keycap" data-key="l">L</div>
+                    <div class="keycap">CTRL</div>
+                </div>
+                <div class="key-row">
+                    <div class="keycap">SHIFT</div>
+                    <div class="keycap">ALT</div>
+                    <div class="keycap key-space" data-key=" ">SPACE</div>
+                    <div class="keycap">ALT</div>
+                    <div class="keycap">WIN</div>
+                </div>
+            </div>
+
+            <!-- Ratón gaming ergonómico -->
+            <div class="mouse-desk" title="Ratón Óptico 16000 DPI">
+                <div class="mouse-wheel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS DEL JUEGO -->
+    <script src="js/audio.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/canvas-game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
